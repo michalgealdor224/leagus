@@ -1,13 +1,13 @@
 package com.ashcollege.utils;
 
 public class Errors {
-    public static final int ERROR_SIGN_UP_NO_USERNAME = 1;
-    public static final int ERROR_SIGN_UP_NO_PASSWORD = 2;
-    public static final int ERROR_SIGN_UP_PASSWORDS_DONT_MATCH = 3;
-    public static final int ERROR_SIGN_UP_USERNAME_TAKEN = 4;
-    public static final int ERROR_LOGIN_WRONG_CREDS = 5;
+    public static final String ERROR_SIGN_UP_NO_USERNAME = "Invalid username";
+    public static final String ERROR_SIGN_UP_NO_PASSWORD = "Invalid password";
+    public static final String ERROR_SIGN_UP_NO_EMAIL = "Invalid email";
+    public static final String ERROR_SIGN_UP_CONFIRM_PASSWORD = "Password isn't the same";
+    public static final String ERROR_SIGN_UP_USERNAME_TAKEN = "Username is taken";
+    public static final String ERROR_LOGIN_USER_NOT_FOUND = "User not found";
     public static final int ERROR_NO_SUCH_USERNAME = 6;
-
     public static final int ERROR_SECRET_WAS_NOT_SENT = 7;
     public static final int ERROR_NO_SUCH_USER = 8;
 }

@@ -8,8 +8,9 @@
     <property name="connection.driver_class"/>
     <property name="connection.username"/>
     <property name="connection.password"/>
+    <property name="connection.email"/>
     <!-- DB schema will be updated if needed -->
-    <!-- <property name="hbm2ddl.auto">update</property> -->
+    <property name="hbm2ddl.auto">update</property>
     <mapping file="objects.hbm.xml"/>
   </session-factory>
 </hibernate-configuration>

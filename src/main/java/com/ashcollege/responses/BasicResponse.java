@@ -2,9 +2,9 @@ package com.ashcollege.responses;
 
 public class BasicResponse {
     private boolean success;
-    private Integer errorCode;
+    private String errorCode;
 
-    public BasicResponse(boolean success, Integer errorCode) {
+    public BasicResponse(boolean success, String errorCode) {
         this.success = success;
         this.errorCode = errorCode;
     }
@@ -17,11 +17,11 @@ public class BasicResponse {
         this.success = success;
     }
 
-    public Integer getErrorCode() {
+    public String getErrorCode() {
         return errorCode;
     }
 
-    public void setErrorCode(Integer errorCode) {
+    public void setErrorCode(String errorCode) {
         this.errorCode = errorCode;
     }
 }

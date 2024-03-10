@@ -4,13 +4,13 @@ public class LoginResponse extends BasicResponse {
     private int id;
     private String secret;
 
-    public LoginResponse(boolean success, Integer errorCode, int id, String secret) {
+    public LoginResponse(boolean success, String errorCode, int id, String secret) {
         super(success, errorCode);
         this.id = id;
         this.secret = secret;
     }
 
-    public LoginResponse(boolean success, Integer errorCode) {
+    public LoginResponse(boolean success, String errorCode) {
         super(success, errorCode);
     }
 

@@ -7,7 +7,7 @@ import java.util.List;
 public class ProductsResponse extends BasicResponse{
     private List<Product> products;
 
-    public ProductsResponse(boolean success, Integer errorCode, List<Product> products) {
+    public ProductsResponse(boolean success, String errorCode, List<Product> products) {
         super(success, errorCode);
         this.products = products;
     }
