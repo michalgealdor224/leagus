@@ -11,9 +11,38 @@ public class Validator {
 
 
 
-    public static boolean validateUser(User user,String confirmPassword) {
+    public static boolean validateUser(User user, String confirmPassword) {
+        return validateUser(user) && isConfirmPassword(user.getPassword(), confirmPassword);
+    }
+    public static boolean validateUser(User user) {
         return validUsername(user.getUsername()) && validPassword(user.getPassword()) &&
-                isValidEmailLib(user.getEmail() ) && isConfirmPassword(user.getPassword(), confirmPassword);
+                isValidEmailLib(user.getEmail());
+    }
+
+    public static boolean validChanges(String item, String value) {
+        boolean isValid = false;
+        if (Objects.equals(item, "password")) {
+            if (!value.equals("")) {
+                if (validPassword(value)) {
+                    isValid = true;
+                }
+            }
+             else {
+                isValid = true;
+            }
+        }
+        if (Objects.equals(item,"email")){
+            if (!value.equals("")) {
+                if (isValidEmailLib(value)) {
+                    isValid = true;
+                }
+            }
+            else {
+                isValid = true;
+            }
+
+        }
+        return isValid;
     }
 
     private static boolean isConfirmPassword (String password , String confirmPassword) {
@@ -22,11 +51,11 @@ public class Validator {
         return  (Objects.equals(password, confirmPassword));
     }
 
-    private static boolean isValidEmailLib(String email) {
+    public static boolean isValidEmailLib(String email) {
         return EmailValidator.getInstance().isValid(email);
     }
 
-    private static boolean validPassword(String password) {
+    public static boolean validPassword(String password) {
         if (password.length() >= 6) {
             for (int i = 0; i < password.length(); i++) {
                 if (Character.isUpperCase(password.charAt(i))) {
@@ -38,7 +67,7 @@ public class Validator {
     }
 
 
-    private static boolean validUsername(String username) {
+    public static boolean validUsername(String username) {
         boolean valid = false;
         if (username != null && username.length() > 0) {
             valid = true;

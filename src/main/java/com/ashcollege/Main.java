@@ -13,7 +13,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class Main {
     public static boolean applicationStarted = false;
     private static final Logger LOGGER = LoggerFactory.getLogger(Persist.class);
-
     public static long startTime;
 
     public static void main(String[] args) {

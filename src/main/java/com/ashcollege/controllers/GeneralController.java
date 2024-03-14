@@ -1,13 +1,12 @@
 package com.ashcollege.controllers;
 
 import com.ashcollege.Persist;
-import com.ashcollege.entities.Client;
 import com.ashcollege.entities.User;
 import com.ashcollege.responses.BasicResponse;
 import com.ashcollege.responses.LoginResponse;
+import com.ashcollege.responses.UserDetailsResponse;
 import com.ashcollege.utils.DbUtils;
 import com.ashcollege.utils.Validator;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,6 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.ashcollege.utils.Errors.*;
 
@@ -38,9 +38,37 @@ public class GeneralController {
 
 
     @RequestMapping(value = "get-data", method = {RequestMethod.GET, RequestMethod.POST})
-    public User getData () {
-        return dbUtils.getUserById(4);
+    public BasicResponse getData (String secret) {
+        Integer userId = dbUtils.getUserIdBySecret(secret);
+        return userId != null ? new UserDetailsResponse(true, null, dbUtils.getUserById(userId)) : new BasicResponse(false, ERROR_SECRET_NOT_FOUND);
     }
+
+/*    @RequestMapping(value = "set-data", method = {RequestMethod.GET, RequestMethod.POST})
+    public BasicResponse setData(int id, String username, String password, String email) {
+        if (Validator.validChanges("password", password) && (Validator.validChanges("email", email))){
+            User last = dbUtils.getUserById(id);
+            last.updateDetails(id, username, password, email);
+            dbUtils.updateUserDetails(last);
+            return new BasicResponse(true, null);
+            //return dbUtils.updateUserData(id, username, password, email);
+        }
+        return new BasicResponse(false, ERROR_USER_UPDATE);
+    }*/
+
+    @RequestMapping(value = "set-data", method = {RequestMethod.GET, RequestMethod.POST})
+    public BasicResponse setData(int id, String username, String password, String email) {
+        User user = dbUtils.getUserById(id);
+        if (user == null) {
+            return new BasicResponse(false, ERROR_LOGIN_USER_NOT_FOUND);
+        }
+        user.updateDetails(username, password, email);
+        if (Validator.validateUser(user)){
+            dbUtils.saveOrUpdateUserDetails(user);
+            return new BasicResponse(true, null);
+        }
+        return new BasicResponse(false, ERROR_USER_UPDATE);
+    }
+
 
     @RequestMapping(value = "/login", method = {RequestMethod.GET, RequestMethod.POST})
     public BasicResponse login(String username, String password) {
@@ -88,14 +116,7 @@ public class GeneralController {
     }
 
 
-    @RequestMapping(value = "test")
-    public Client test(String firstName, String newFirstName) {
-        Client client = persist.getClientByFirstName(firstName);
-        client.setFirstName(newFirstName);
-        client.setLastName(newFirstName);
-        persist.save(client);
-        return client;
-    }
+
 
     @RequestMapping(value = "/start-streaming")
     public SseEmitter streaming() {

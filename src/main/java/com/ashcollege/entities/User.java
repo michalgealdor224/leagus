@@ -1,6 +1,9 @@
 package com.ashcollege.entities;
 
 
+import com.github.javafaker.Faker;
+
+import java.util.Objects;
 
 public class User {
     private int id;
@@ -10,15 +13,17 @@ public class User {
     private String secret;
 
 
-    public User(int id, String username, String password, String email) {
-        this(username, password, email);
-        this.id = id;
+    private String createSecret() {
+        Faker faker = new Faker();
+        String secret = faker.regexify("[a-zA-Z0-9]{10}"); 
+        return secret;
     }
 
     public User(String username, String password, String email) {
         this.username = username;
         this.password = password;
         this.email = email;
+        this.secret = createSecret();
     }
 
     public User() {
@@ -73,5 +78,11 @@ public class User {
 
     public void setSecret(String secret) {
         this.secret = secret;
+    }
+
+    public void updateDetails(String username, String password, String email) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
     }
 }
