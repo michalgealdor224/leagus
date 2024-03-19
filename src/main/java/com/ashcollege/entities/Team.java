@@ -1,5 +1,7 @@
 package com.ashcollege.entities;
 
+import java.util.List;
+
 public class Team {
 
     private String name;

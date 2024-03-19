@@ -1,6 +1,7 @@
 package com.ashcollege.controllers;
 
 import com.ashcollege.Persist;
+import com.ashcollege.entities.Team;
 import com.ashcollege.entities.User;
 import com.ashcollege.responses.BasicResponse;
 import com.ashcollege.responses.LoginResponse;
@@ -13,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 import static com.ashcollege.utils.Errors.*;
 
@@ -30,7 +33,6 @@ public class GeneralController {
 
     private List<SseEmitter> clients = new ArrayList<>();
 
-
     @RequestMapping(value = "/", method = {RequestMethod.GET, RequestMethod.POST})
     public Object test() {
         return "Hello From Server";
@@ -38,10 +40,27 @@ public class GeneralController {
 
 
     @RequestMapping(value = "get-data", method = {RequestMethod.GET, RequestMethod.POST})
-    public BasicResponse getData (String secret) {
+    public BasicResponse getData(String secret) {
         Integer userId = dbUtils.getUserIdBySecret(secret);
         return userId != null ? new UserDetailsResponse(true, null, dbUtils.getUserById(userId)) : new BasicResponse(false, ERROR_SECRET_NOT_FOUND);
     }
+
+    @PostConstruct
+    public static Team[] generateTeams(Persist persist) {
+        Team[] teams = new Team[8];
+        String[] spanishTeams = {"Barcelona", "Real Madrid", "Atletico Madrid", "Real Sociedad", "Villarreal", "Real Betis", "Athletic Bilbao", "Celta Vigo"};
+        Random random = new Random();
+        for (int i = 0; i < 8; i++) {
+            String teamName = spanishTeams[i];
+            int randomNumber = random.nextInt(100) + 1;
+            teams[i] = new Team(teamName, randomNumber);
+            System.out.println(teamName + " " + randomNumber);
+        }
+        persist.saveTeams(teams);
+        return teams;
+    }
+
+
 
 /*    @RequestMapping(value = "set-data", method = {RequestMethod.GET, RequestMethod.POST})
     public BasicResponse setData(int id, String username, String password, String email) {
@@ -62,7 +81,7 @@ public class GeneralController {
             return new BasicResponse(false, ERROR_LOGIN_USER_NOT_FOUND);
         }
         user.updateDetails(username, password, email);
-        if (Validator.validateUser(user)){
+        if (Validator.validateUser(user)) {
             dbUtils.saveOrUpdateUserDetails(user);
             return new BasicResponse(true, null);
         }
@@ -97,7 +116,7 @@ public class GeneralController {
     }
 
     @RequestMapping(value = "add-user", method = {RequestMethod.GET, RequestMethod.POST})
-    public BasicResponse addUser(String username, String password,String confirmPassword, String email) {
+    public BasicResponse addUser(String username, String password, String confirmPassword, String email) {
         BasicResponse response;
         User userToAdd = new User(username, password, email);
         if (Validator.validateUser(userToAdd, confirmPassword)) {
@@ -114,8 +133,6 @@ public class GeneralController {
     public List<User> getUsers() {
         return dbUtils.getAllUsers();
     }
-
-
 
 
     @RequestMapping(value = "/start-streaming")

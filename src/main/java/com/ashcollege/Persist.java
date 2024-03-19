@@ -1,6 +1,7 @@
 package com.ashcollege;
 
 
+import com.ashcollege.entities.Team;
 import com.ashcollege.entities.User;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -37,7 +38,26 @@ public class Persist {
     public void save(Object object) {
         this.sessionFactory.getCurrentSession().saveOrUpdate(object);
     }
-//
+
+
+    public void saveTeams(Team[] teams) {
+        Session session = getQuerySession();
+        List<Team> existingTeams = session.createQuery("SELECT t FROM Team t").list();
+        if (existingTeams.isEmpty()) {
+            for (Team team : teams) {
+                save(team);
+            }
+        }
+    }
+
+
+
+//    public User getUserById(int id) {
+//        User user = (User)this.sessionFactory.getCurrentSession().createQuery("FROM User WHERE id =: id")
+//                .setParameter("id",id);
+//        return user;
+//    }
+
     public <T> T loadObject(Class<T> clazz, int oid) {
         return this.getQuerySession().get(clazz, oid);
     }

@@ -130,8 +130,6 @@ public class DbUtils {
         return allUsers;
     }
 
-
-
     /*public boolean checkCredentials (String username, String password) {
         boolean ok = false;
         if (checkIfUsernameAvailable(username)) {

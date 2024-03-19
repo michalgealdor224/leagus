@@ -15,7 +15,7 @@ public class User {
 
     private String createSecret() {
         Faker faker = new Faker();
-        String secret = faker.regexify("[a-zA-Z0-9]{10}"); 
+        String secret = faker.regexify("[a-zA-Z0-9]{10}");
         return secret;
     }
 
