@@ -3,24 +3,7 @@
         "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
 
-    <class name="com.ashcollege.entities.User" table="users" lazy="false">
-        <id name="id" type="int" column="id">
-            <generator class="native"/>
-        </id>
-        <property name="username" type="string" column="username"/>
-        <property name="password" type="string" column="password"/>
-        <property name="email" type="string" column="email"/>
-        <property name="secret" type="string" column="secret"/>
-    </class>
 
-
-    <class name="com.ashcollege.entities.Team" table="teams" lazy="false">
-        <id name="id" type="int" column="id">
-            <generator class="native"/>
-        </id>
-        <property name="name" type="string" column="name"/>
-        <property name="skillLevel" type="string" column="skillLevel"/>
-    </class>
 
 
 </hibernate-mapping>

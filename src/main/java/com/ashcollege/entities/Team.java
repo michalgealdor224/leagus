@@ -1,12 +1,20 @@
 package com.ashcollege.entities;
 
-import java.util.List;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "teams")
 public class Team {
 
-    private String name;
-    private int skillLevel;
+    @Id
+    @GeneratedValue
+    @Column
     private int id;
+    @Column
+    private String name;
+    @Column
+    private int skillLevel;
 
     public Team() {
 

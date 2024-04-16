@@ -1,6 +1,9 @@
 package com.ashcollege.utils;
 
+import com.ashcollege.entities.Game;
+import com.ashcollege.entities.Team;
 import com.ashcollege.entities.User;
+import com.ashcollege.models.TeamModel;
 import com.ashcollege.models.UserModel;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -12,6 +15,7 @@ import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Component
 public class DbUtils {
@@ -27,13 +31,69 @@ public class DbUtils {
     @PostConstruct
     public void init() {
         createDbConnection(Constants.DB_USERNAME, Constants.DB_PASSWORD);
+        generateTeams();
+        initGames();
+    }
 
+    private void initGames() {
+        List<Game> gamesFromDB = getGames();
+        if (!gamesFromDB.isEmpty()){
+            return;
+        }
+        List<Team> teams = getTeams();
+        var games = Game.scheduleGames(teams);
+        for (Game game: games){
+            saveGame(game);
+        }
+        System.out.println("Reached end of init games() function.");
+
+    }
+
+    public void generateTeams() {
+        List<Team> teamsFromDB = getAllTeams();
+        if (!teamsFromDB.isEmpty()){
+            return;
+        }
+        Team[] teams = new Team[8]; //TODO
+        String[] spanishTeams = {"Barcelona", "Real Madrid", "Atletico Madrid", "Real Sociedad", "Villarreal", "Real Betis", "Athletic Bilbao", "Celta Vigo"};
+        Random random = new Random();
+        for (int i = 0; i < 8; i++) {
+            String teamName = spanishTeams[i];
+            int randomNumber = random.nextInt(20) + 1; //TODO
+            teams[i] = new Team(teamName, randomNumber);
+            System.out.println(teamName + " " + randomNumber);
+            this.saveTeam(teams[i]);
+        }
+        System.out.println("Reached end of generateTeams() function.");
+    }
+
+    private List<Team> getAllTeams() {
+        Session session = sessionFactory.openSession();
+        List<Team> allTeams = session.createQuery("FROM Team").list();
+        session.close();
+        return allTeams;
     }
 
     public void saveOrUpdateUserDetails(User user) {
         Session session = sessionFactory.openSession();
         Transaction transaction = session.beginTransaction();
         session.saveOrUpdate(user);
+        transaction.commit();
+        session.close();
+    }
+
+    public void saveTeam(Team team) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        session.saveOrUpdate(team);
+        transaction.commit();
+        session.close();
+    }
+
+    private void saveGame(Game game) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        session.saveOrUpdate(game);
         transaction.commit();
         session.close();
     }
@@ -198,5 +258,17 @@ public class DbUtils {
         return userId;
     }
 
+    public List<Team> getTeams() {
+        Session session = sessionFactory.openSession();
+        List<Team> allTeams = session.createQuery("FROM Team").list();
+        session.close();
+        return allTeams;
+    }
 
+    public List<Game> getGames() {
+        Session session = sessionFactory.openSession();
+        List<Game> allGames = session.createQuery("FROM Game").list();
+        session.close();
+        return allGames;
+    }
 }

@@ -3,6 +3,7 @@ package com.ashcollege.controllers;
 import com.ashcollege.Persist;
 import com.ashcollege.entities.Team;
 import com.ashcollege.entities.User;
+import com.ashcollege.models.TeamModel;
 import com.ashcollege.responses.BasicResponse;
 import com.ashcollege.responses.LoginResponse;
 import com.ashcollege.responses.UserDetailsResponse;
@@ -25,6 +26,7 @@ import static com.ashcollege.utils.Errors.*;
 @RestController
 public class GeneralController {
 
+
     @Autowired
     private DbUtils dbUtils;
 
@@ -45,20 +47,26 @@ public class GeneralController {
         return userId != null ? new UserDetailsResponse(true, null, dbUtils.getUserById(userId)) : new BasicResponse(false, ERROR_SECRET_NOT_FOUND);
     }
 
-    @PostConstruct
-    public static Team[] generateTeams(Persist persist) {
+    @RequestMapping(value = "get-table", method = {RequestMethod.GET, RequestMethod.POST})
+    public List<TeamModel> getData() {
+        var teams = dbUtils.getTeams();
+        var games = dbUtils.getGames();
+        return TeamModel.getTable(games, teams);
+    }
+
+    public void generateTeams() {
         Team[] teams = new Team[8];
         String[] spanishTeams = {"Barcelona", "Real Madrid", "Atletico Madrid", "Real Sociedad", "Villarreal", "Real Betis", "Athletic Bilbao", "Celta Vigo"};
         Random random = new Random();
         for (int i = 0; i < 8; i++) {
             String teamName = spanishTeams[i];
-            int randomNumber = random.nextInt(100) + 1;
+            int randomNumber = random.nextInt(20) + 1; //TODO
             teams[i] = new Team(teamName, randomNumber);
             System.out.println(teamName + " " + randomNumber);
+            dbUtils.saveTeam(teams[i]);
         }
-        persist.saveTeams(teams);
-        return teams;
     }
+
 
 
 

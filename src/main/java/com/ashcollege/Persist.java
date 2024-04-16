@@ -43,12 +43,11 @@ public class Persist {
     public void saveTeams(Team[] teams) {
         Session session = getQuerySession();
         List<Team> existingTeams = session.createQuery("SELECT t FROM Team t").list();
-        if (existingTeams.isEmpty()) {
             for (Team team : teams) {
                 save(team);
             }
         }
-    }
+
 
 
 
