@@ -27,7 +27,7 @@ public class Validator {
                     isValid = true;
                 }
             }
-             else {
+            else {
                 isValid = true;
             }
         }
@@ -46,7 +46,7 @@ public class Validator {
     }
 
     private static boolean isConfirmPassword (String password , String confirmPassword) {
-     //   System.out.println(password + "      " + confirmPassword);
+        //   System.out.println(password + "      " + confirmPassword);
         System.out.println(Objects.equals(password, confirmPassword));
         return  (Objects.equals(password, confirmPassword));
     }

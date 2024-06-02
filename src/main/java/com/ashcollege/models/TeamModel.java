@@ -42,13 +42,16 @@ public class TeamModel implements Comparable<TeamModel> {
 
     private void updateRank(List<Game> teamGames) {
         for (Game game: teamGames) {
-            if (game.getTeamA().getName().equals(this.name)) {
-                this.updateByGoals(game.getScoreA(), game.getScoreB());
-            } else if (game.getTeamB().getName().equals(this.name)) {
-                this.updateByGoals(game.getScoreB(), game.getScoreA());
+            if (game.getLive() != null) {
+                if (game.getTeamA().getName().equals(this.name)) {
+                    this.updateByGoals(game.getScoreA(), game.getScoreB());
+                } else if (game.getTeamB().getName().equals(this.name)) {
+                    this.updateByGoals(game.getScoreB(), game.getScoreA());
+                }
             }
         }
     }
+
 
     private void updateByGoals(int goalsScored, int goalsConceded){
         if (goalsScored > goalsConceded){

@@ -1,5 +1,6 @@
 package com.ashcollege;
 
+import com.ashcollege.entities.Bet;
 import com.ashcollege.entities.Game;
 import com.ashcollege.entities.Team;
 import com.ashcollege.entities.User;
@@ -57,7 +58,7 @@ public class AppConfig {
         settings.put(Environment.ENABLE_LAZY_LOAD_NO_TRANS, true);
         return settings;
     }
-//    @Bean
+    //    @Bean
 //    public LocalSessionFactoryBean sessionFactory1() throws Exception {
 //        LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
 //        sessionFactoryBean.setDataSource(dataSource());
@@ -82,6 +83,7 @@ public class AppConfig {
         configuration.addAnnotatedClass(Game.class);
         configuration.addAnnotatedClass(Team.class);
         configuration.addAnnotatedClass(User.class);
+        configuration.addAnnotatedClass(Bet.class);
         ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                 .applySettings(configuration.getProperties()).build();
         return configuration.buildSessionFactory(serviceRegistry);

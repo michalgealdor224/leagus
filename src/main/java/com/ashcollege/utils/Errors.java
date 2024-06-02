@@ -9,6 +9,8 @@ public class Errors {
     public static final String ERROR_LOGIN_USER_NOT_FOUND = "User not found";
     public static final String ERROR_SECRET_NOT_FOUND = "Secret not found";
     public static final String ERROR_USER_UPDATE = "Failed to update user data";
+    public static final String ERROR_TEAM_NOT_FOUND = "Team not found";
+    public static final String ERROR_GAME_NOT_FOUND = "Game not found";
     public static final int ERROR_NO_SUCH_USERNAME = 6;
     public static final int ERROR_SECRET_WAS_NOT_SENT = 7;
     public static final int ERROR_NO_SUCH_USER = 8;

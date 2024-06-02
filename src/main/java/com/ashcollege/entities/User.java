@@ -4,6 +4,8 @@ package com.ashcollege.entities;
 import com.github.javafaker.Faker;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 @Entity
 @Table(name = "users")
@@ -20,6 +22,18 @@ public class User {
     private String email;
     @Column
     private String secret;
+    @Column
+    private double  balance;
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+
+
 
 
     private String createSecret() {
@@ -33,6 +47,7 @@ public class User {
         this.password = password;
         this.email = email;
         this.secret = createSecret();
+        this.balance =1000;
     }
 
     public User() {
@@ -71,7 +86,7 @@ public class User {
     public boolean isSameCreds (String username, String password) {
         return this.username.equals(username) && this.password.equals(password);
     }
-    
+
 
     public int getId() {
         return id;

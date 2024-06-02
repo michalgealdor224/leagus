@@ -82,7 +82,7 @@ public class Game {
     @Override
     public String toString() {
         return "Game{" +
-                 teamA.getName() +
+                teamA.getName() +
                 " <> " + teamB.getName() +
                 ", " + weather +
                 ", " + date +
@@ -90,8 +90,26 @@ public class Game {
     }
 
     public Team whoWin() {
-        // fill this func TODO
-        return this.getTeamA();
+        if(this.getScoreA()>this.getScoreB()){
+            return this.getTeamA();
+        }
+        else if(this.getScoreA()<this.getScoreB()){
+            return this.getTeamB();
+        }
+        else{
+            return null;
+        }
+    }
+    public Team whoLose() {
+        if(this.getScoreA()<this.getScoreB()){
+            return this.getTeamA();
+        }
+        else if(this.getScoreA()>this.getScoreB()){
+            return this.getTeamB();
+        }
+        else{
+            return null;
+        }
     }
 
     public Team getTeamA() {
@@ -156,5 +174,13 @@ public class Game {
 
     public void setDate(LocalDate date) {
         this.date = date;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

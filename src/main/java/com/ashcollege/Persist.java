@@ -43,10 +43,10 @@ public class Persist {
     public void saveTeams(Team[] teams) {
         Session session = getQuerySession();
         List<Team> existingTeams = session.createQuery("SELECT t FROM Team t").list();
-            for (Team team : teams) {
-                save(team);
-            }
+        for (Team team : teams) {
+            save(team);
         }
+    }
 
 
 
@@ -64,10 +64,5 @@ public class Persist {
 //    public <T> List<T> loadList(Class<T> clazz) {
 //        return  this.sessionFactory.getCurrentSession().createQuery("FROM Client").list();
 //    }
-
-
-
-
-
 
 }

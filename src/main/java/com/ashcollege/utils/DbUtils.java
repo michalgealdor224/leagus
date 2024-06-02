@@ -1,8 +1,11 @@
 package com.ashcollege.utils;
 
+import com.ashcollege.controllers.LiveUpdateController;
+import com.ashcollege.entities.Bet;
 import com.ashcollege.entities.Game;
 import com.ashcollege.entities.Team;
 import com.ashcollege.entities.User;
+import com.ashcollege.models.GameModel;
 import com.ashcollege.models.TeamModel;
 import com.ashcollege.models.UserModel;
 import org.hibernate.Session;
@@ -14,15 +17,21 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
 @Component
 public class DbUtils {
 
     private Connection connection;
     private final SessionFactory sessionFactory;
-
+    @Autowired
+    private LiveUpdateController liveUpdateController;
+    @Autowired
+    private ScoreGenerator scoreGenerator;
     @Autowired
     public DbUtils(SessionFactory sf) {
         this.sessionFactory = sf;
@@ -33,13 +42,41 @@ public class DbUtils {
         createDbConnection(Constants.DB_USERNAME, Constants.DB_PASSWORD);
         generateTeams();
         initGames();
+        startLeague();
     }
 
-    private void initGames() {
+    private void startLeague(){
         List<Game> gamesFromDB = getGames();
-        if (!gamesFromDB.isEmpty()){
-            return;
-        }
+        new Thread(()->{
+            while(true){
+                for (int i =0; i<7;i++) {
+                    try {
+                        Thread.sleep(60000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    int roundNumber=i;
+                    CountDownLatch round = new CountDownLatch(4);
+                    for (Game game : gamesFromDB.stream().filter(game -> game.getRound() == roundNumber&& game.getLive()==null).toList()) {
+                        new Thread(new RunGame(round,game,this,scoreGenerator)).start();
+                    }
+                    try {
+                        round.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                try {
+                    Thread.sleep(120000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                initGames();
+            }
+
+        }).start();
+    }
+    private void initGames() {
         List<Team> teams = getTeams();
         var games = Game.scheduleGames(teams);
         for (Game game: games){
@@ -54,12 +91,12 @@ public class DbUtils {
         if (!teamsFromDB.isEmpty()){
             return;
         }
-        Team[] teams = new Team[8]; //TODO
+        Team[] teams = new Team[8];
         String[] spanishTeams = {"Barcelona", "Real Madrid", "Atletico Madrid", "Real Sociedad", "Villarreal", "Real Betis", "Athletic Bilbao", "Celta Vigo"};
         Random random = new Random();
         for (int i = 0; i < 8; i++) {
             String teamName = spanishTeams[i];
-            int randomNumber = random.nextInt(20) + 1; //TODO
+            int randomNumber = random.nextInt(10);
             teams[i] = new Team(teamName, randomNumber);
             System.out.println(teamName + " " + randomNumber);
             this.saveTeam(teams[i]);
@@ -120,6 +157,7 @@ public class DbUtils {
                 user.setUsername(resultSet.getString("username"));
                 user.setPassword(resultSet.getString("password"));
                 user.setEmail(resultSet.getString("email"));
+                user.setBalance(resultSet.getInt("balance"));
             }
 
         } catch (SQLException e) {
@@ -177,8 +215,11 @@ public class DbUtils {
         boolean success = false;
         if (checkIfUsernameAvailable(user.getUsername())) {
             Session session = sessionFactory.openSession();
-            session.save(user);
+            Transaction transaction = session.beginTransaction();
+            session.saveOrUpdate(user);
+            transaction.commit();
             session.close();
+
             success = true;
         }
         return success;
@@ -190,14 +231,6 @@ public class DbUtils {
         return allUsers;
     }
 
-    /*public boolean checkCredentials (String username, String password) {
-        boolean ok = false;
-        if (checkIfUsernameAvailable(username)) {
-            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE password = ? and username = ?");
-            preparedStatement.setString(1,username);
-            preparedStatement.setString(2,password);
-        }
-    }*/
 
     public User login(String username, String password) {
         User user = null;
@@ -220,28 +253,6 @@ public class DbUtils {
         return user;
     }
 
-//    public List<Product> getProductsByUserSecret (String secret) {
-//        List<Product> products = new ArrayList<>();
-//        try {
-//            PreparedStatement preparedStatement = connection.prepareStatement(
-//                    "SELECT p.description, p.price " +
-//                            "FROM users u INNER JOIN users_products_map upm ON u.id = upm.user_id " +
-//                            "INNER JOIN products p ON upm.product_id = p.id " +
-//                            "WHERE u.secret = ?"
-//            );
-//            preparedStatement.setString(1, secret);
-//            ResultSet resultSet = preparedStatement.executeQuery();
-//            while (resultSet.next()) {
-//                String description = resultSet.getString(1);
-//                float price = resultSet.getFloat(2);
-//                Product product = new Product(description, price, 0);
-//                products.add(product);
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//        return products;
-//    }
 
     public Integer getUserIdBySecret(String secret) {
         Integer userId = null;
@@ -270,5 +281,93 @@ public class DbUtils {
         List<Game> allGames = session.createQuery("FROM Game").list();
         session.close();
         return allGames;
+    }
+
+    public List<Game> getGamesIsLive() {
+        Session session = sessionFactory.openSession();
+        List<Game> gamesIsLive = session.createQuery("FROM Game where isLive =true ").list();
+        session.close();
+        return gamesIsLive;
+    }
+    public List<Game> getGamesPlayed() {
+        Session session = sessionFactory.openSession();
+        List<Game> gamesPlayed = session.createQuery("FROM Game where isLive =false").list();
+        session.close();
+        return gamesPlayed;
+    }
+    public List<Game> getFutureGames() {
+        Session session = sessionFactory.openSession();
+        List<Game> futureGames = session.createQuery("FROM Game where isLive =null").list();
+        session.close();
+        return futureGames;
+    }
+
+    public void updateGame(Game game) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        session.saveOrUpdate(game);
+        updateBetByGame(game);
+        transaction.commit();
+        session.close();
+        Thread thread =new Thread();
+        thread.start();
+        liveUpdateController.sendGamesIsUpdate();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+    public synchronized void updateBetByGame(Game game){
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        List<Bet> bets = session.createQuery("FROM Bet where game =:game ")
+                .setParameter("game",game).list();
+        for (Bet bet:bets)
+        {
+            bet.calculateSuccess();
+            session.saveOrUpdate(bet);
+            session.saveOrUpdate(bet.getUser());
+        }
+        transaction.commit();
+        session.close();
+    }
+    public void updateTeam(Team team) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        session.saveOrUpdate(team);
+        transaction.commit();
+        session.close();
+    }
+    public Game getGameById(int gameId){
+        Session session = sessionFactory.openSession();
+        Game game =(Game) session.createQuery("FROM Game where id=:gameId")
+                .setParameter("gameId",gameId).uniqueResult();
+        session.close();
+        return game;
+    }
+    public Team getTeamById(int teamId){
+        Session session = sessionFactory.openSession();
+        Team team =(Team) session.createQuery("FROM Game where id=:teamId")
+                .setParameter("teamId",teamId).uniqueResult();
+        session.close();
+        return team;
+    }
+    public void saveBet(Bet bet){
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        session.saveOrUpdate(bet);
+        transaction.commit();
+        session.close();
+    }
+
+    public List<Bet> getBetsByUserId(User user){
+        Session session = sessionFactory.openSession();
+        List<Bet> bets = session.createQuery("FROM Bet where user=:user")
+                .setParameter("user",user).list();
+        session.close();
+        return bets;
     }
 }

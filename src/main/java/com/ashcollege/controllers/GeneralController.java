@@ -1,8 +1,12 @@
 package com.ashcollege.controllers;
 
 import com.ashcollege.Persist;
+import com.ashcollege.entities.Bet;
+import com.ashcollege.entities.Game;
 import com.ashcollege.entities.Team;
 import com.ashcollege.entities.User;
+import com.ashcollege.models.BetModel;
+import com.ashcollege.models.GameModel;
 import com.ashcollege.models.TeamModel;
 import com.ashcollege.responses.BasicResponse;
 import com.ashcollege.responses.LoginResponse;
@@ -33,7 +37,6 @@ public class GeneralController {
     @Autowired
     private Persist persist;
 
-    private List<SseEmitter> clients = new ArrayList<>();
 
     @RequestMapping(value = "/", method = {RequestMethod.GET, RequestMethod.POST})
     public Object test() {
@@ -142,12 +145,83 @@ public class GeneralController {
         return dbUtils.getAllUsers();
     }
 
+    @RequestMapping(value = "get-my-bets")
+    public List<BetModel> getMyBets(String secret) {
+        List<BetModel> betModelList = new ArrayList<>();
+        User user = new User();
+        user = dbUtils.getUserBySecret(secret);
+        if (user != null) {
+            for (Bet bet:dbUtils.getBetsByUserId(user))
+            {
+                betModelList.add(new BetModel(bet));
+            }
 
-    @RequestMapping(value = "/start-streaming")
-    public SseEmitter streaming() {
-        SseEmitter emitter = new SseEmitter();
-        clients.add(emitter);
-        return emitter;
+        }
+        return betModelList;
     }
+
+    @RequestMapping(value = "get-live-games", method = {RequestMethod.GET, RequestMethod.POST})
+    public List<GameModel> getGamesIsLive() {
+        List<GameModel> gameModelList = new ArrayList<>();
+        for (Game game : dbUtils.getGamesIsLive()) {
+            gameModelList.add(new GameModel(game));
+        }
+
+        return gameModelList;
+    }
+
+    @RequestMapping(value = "get-games-played", method = {RequestMethod.GET, RequestMethod.POST})
+    public List<GameModel> getGamesPlayed() {
+
+        List<GameModel> gameModelList = new ArrayList<>();
+        for (Game game : dbUtils.getGamesPlayed()) {
+            gameModelList.add(new GameModel(game));
+        }
+        return gameModelList;
+    }
+
+    @RequestMapping(value = "get-future-games", method = {RequestMethod.GET, RequestMethod.POST})
+    public List<GameModel> getFutureGames() {
+        List<GameModel> gameModelList = new ArrayList<>();
+        for (Game game : dbUtils.getFutureGames()) {
+            gameModelList.add(new GameModel(game));
+        }
+        return gameModelList;
+    }
+
+    @RequestMapping(value = "get-game-by-id", method = {RequestMethod.GET, RequestMethod.POST})
+    public GameModel getGameById(int gameId) {
+        GameModel gameModel = new GameModel(dbUtils.getGameById(gameId));
+        return gameModel;
+    }
+
+    @RequestMapping(value = "send-bet", method = {RequestMethod.GET, RequestMethod.POST})
+    public BasicResponse sendBet(String secret, int gameId,boolean teamAWin ,boolean teamBWin,boolean isDouble, int teamAScore, int teamBScore, int sum, double ratio)
+    {
+        BasicResponse basicResponse =new BasicResponse(false,null);
+        User user = dbUtils.getUserBySecret(secret);
+        if (user != null) {
+            Game game = dbUtils.getGameById(gameId);
+            if(game!=null){
+                Bet bet =new Bet(user, game,isDouble, sum, ratio);
+                bet.calculateBet( teamAWin , teamBWin, teamAScore,  teamBScore);
+                dbUtils.saveBet(bet);
+                user.setBalance(user.getBalance()-sum);
+                dbUtils.saveOrUpdateUserDetails(user);
+                basicResponse.setSuccess(true);
+            }
+            else{
+                basicResponse.setErrorCode(ERROR_GAME_NOT_FOUND);
+            }
+        }
+        else{
+            basicResponse.setErrorCode(ERROR_SECRET_NOT_FOUND);
+        }
+
+        return basicResponse;
+    }
+
+
+
 
 }
